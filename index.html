@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+       
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+        
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
+        <style>
+            #mapid { height: 600px; 
+                    width: 1000px;}
+        </style>
+
+    </head>
+    <body style="font-family:Arial"; >
+    <h1>Healthy Rides Bike Share Station Visualization </h1>
+        <input id="slider" type="range" min="1" max="100" value="1" step="1" />
+    
+        <span id="range">1</span>
+
+        <button name="play" id="play">Play</button>
+
+        <div id="mapid"></div>
+        <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
+        <script type="text/javascript" src="d3.v3.js">    </script>     
+        <script type="text/javascript" src="stationReader.js">     </script>
+        <script type = "text/javascript">
+            var mymap = L.map('mapid').setView([40.4488, -79.979], 13);
+            L.tileLayer('https://api.mapbox.com/styles/v1/dillar/cj12t54la000b2smrpodn0qhj/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGlsbGFyIiwiYSI6ImNqMTJzbjEweTAwNGEyeG8yaDcycnA5YzQifQ.sTleMehx1aOGHOqS6rAMAg', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'your.mapbox.project.id',
+            accessToken: 'your.mapbox.public.access.token'
+            }).addTo(mymap);
+
+
+             
+
+            drawStations(); 
+
+            
+        </script>
+
+
+
+
+
+
+    </body>
+</html>     
