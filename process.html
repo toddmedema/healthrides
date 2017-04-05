@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pittsburgh BikeShare Analysis</title>
+</head>
+<body>
+  <h1>Hello</h1>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+  <script>
+    'use strict';
+    const year = 2016;
+    let rides = []; // rental data - reported bike rides
+    let moves = []; // rental data - interpolated moves
+    let stations = {}; // id: {station info}
+    let weather = {}; // ts (hourly): {weather info}
+
+    downloadData();
+
+    function downloadData() {
+      $.ajax({
+        type: 'GET',
+        url: 'HealthyRideRentals' + year + '.csv',
+        dataType: 'text',
+        success: processRentals,
+      });
+      $.ajax({
+        type: 'GET',
+        url: 'HealthyRideStations' + year + '.csv',
+        dataType: 'text',
+        success: processStations,
+      });
+    }
+
+    function processRentals(csv) {
+      const data = d3.csvParse(csv);
+      for (let i = 0, l = data.length; i < l; i++) {
+        const ride = data[i];
+        ride.Starthour = roundToHour(ride.Starttime);
+        ride.Stophour = roundToHour(ride.Stoptime);
+console.log(ride);
+      }
+    }
+
+    function processStations(csv) {
+      const data = d3.csvParse(csv);
+      for (let i = 0, l = data.length; i < l; i++) {
+        const station = data[i];
+        stations[station['Station #']] = station;
+      }
+    }
+
+    function roundToHour(string) {
+      return moment(string).startOf('hour').toString();
+    }
+  </script>
+</body>
+</html>
