@@ -1,56 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>D3 Test</title>
-       
+  <head>
+    <meta charset="utf-8">
+    <title>Pittsburgh Bike Share Analysis</title>
+    <style>
+      a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
+      body, html {
+        font-family: Arial;
+      }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css" />
+    <link rel="stylesheet" href="metricsgraphics.css" />
+  </head>
+  <body>
+    <h1>Pittsburgh Bike Share Analysis</h1>
+    <input id="slider" type="range" min="1" max="100" value="1" step="1" />
+    <span id="range">1</span>
+    <button name="play" id="play">Play</button>
+    <div id="timeseries"></div>
+    <div id="mapid"></div>
 
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
-        
-<link href='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
-        <style>
-            #mapid { height: 600px; 
-                    width: 1000px;}
-        </style>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="metricsgraphics.min.js"></script>
 
-    </head>
-    <body style="font-family:Arial"; >
-    <h1>Healthy Rides Bike Share Station Visualization </h1>
-        <input id="slider" type="range" min="1" max="100" value="1" step="1" />
-    
-        <span id="range">1</span>
-
-        <button name="play" id="play">Play</button>
-
-        <div id="mapid"></div>
-        <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"
-            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-            crossorigin="anonymous"></script>
-        <script src='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
-        <script type="text/javascript" src="d3.v3.js">    </script>     
-        <script type="text/javascript" src="stationReader.js">     </script>
-        <script type = "text/javascript">
-            var mymap = L.map('mapid').setView([40.4488, -79.979], 13);
-            L.tileLayer('https://api.mapbox.com/styles/v1/dillar/cj12t54la000b2smrpodn0qhj/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGlsbGFyIiwiYSI6ImNqMTJzbjEweTAwNGEyeG8yaDcycnA5YzQifQ.sTleMehx1aOGHOqS6rAMAg', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-            maxZoom: 18,
-            id: 'your.mapbox.project.id',
-            accessToken: 'your.mapbox.public.access.token'
-            }).addTo(mymap);
-
-
-             
-
-            drawStations(); 
-
-            
-        </script>
-
-
-
-
-
-
-    </body>
-</html>     
+    <script type="text/javascript" src="data.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+  </body>
+</html>
