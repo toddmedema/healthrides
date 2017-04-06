@@ -33,11 +33,10 @@ function processRentals(csv) {
   let data = [];
   for (let i = 0, l = csv.length; i < l; i++) {
     const ride = csv[i];
-    // TODO hour of day and day of week strings
-    // ride.startHour = moment(ride.Starttime).startOf('hour').toString();
-    // ride.startHourFormatted = ride.startHour();
     ride.startDate = moment(ride.Starttime).startOf('day');
     ride.startDateFormatted = ride.startDate.format('YYYY-MM-DD');
+    ride.hour = Number(moment(ride.Starttime).format('H'));
+    // ride.dayOfWeek = ...
     // ride.stopRounded = moment(ride.Stoptime).startOf('hour').toString();
     data.push(ride);
   }
@@ -53,6 +52,8 @@ function processStations(rides, csv) {
     station.name = station['Station Name'];
     // calculate net inflow/outflow per day
     // inflow + outflow not guaranteed to have a value for every day
+    // PERF: iterate through all rides once, aggregating to [station][day]
+    // rather than all rides for each station
     station.dailyOutflow = rides.reduce((days, ride) => {
       if (ride['From station id'] === station.id) {
         if (days[ride.startDateFormatted]) {

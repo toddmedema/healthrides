@@ -1,10 +1,12 @@
 // TODOs
-// add time of day filter slider
-// add checkboxes for day of week
+// add time of day filter to station parsing
+  // need to redo station net filtering, must be calculated on the fly....
+    // Or, perhaps it only re-calculates if start/end filters aren't full day?
 // stylize page + provide help info
 // host on PittsburghBikeWorks.com
 
 // BONUS ideas
+// add checkboxes for day of week
 // Integrate weather data for exploration
 // Integrate moves data for exploration
 // update circle popup text with new data on refreshes
@@ -12,7 +14,13 @@
 // Allow for animated playthrough
   // Perhaps separate calculation from visual updating? Animation data is pre-calculable
   // Plus, could then cache previous calculations
-
+// Ability to show / hide filters (esp for mobile)
+// Resize sliders on window resize
+// Loading indicator while waiting for initial data
+// expand list of markers
+  // only show markers for top (3? based on width?) data points in filter range
+  // types of markers? sports game vs construction vs weather spikes
+// ability to show / highlight weekends in time series
 
 const year = 2016; // TODO combine all years' data, and let users filter / view all of it
 const data = {
@@ -26,10 +34,12 @@ const filters = {
   maxTime: moment('2017-01-01'),
   startTime: moment('2016-01-01'),
   endTime: moment('2017-01-01'),
+  startHour: 0,
+  endHour: 23,
 };
 const daysArray = calculateDaysArray(filters.minTime, filters.maxTime);
 const markers = {
-  '2016-09-24': 'Pirates game',
+  '2016-09-24 12:00:00': 'Pirates game',
 };
 const CIRCLE_RADIUS_MAX = 200;
 const CIRCLE_RADIUS_MIN = 50;
@@ -42,7 +52,7 @@ let timer;
 
 // INIT
 
-const mymap = L.map('mapid').setView([40.4488, -79.979], 13);
+const mymap = L.map('mapid').setView([40.4398, -79.975], 13);
 L.tileLayer('https://api.mapbox.com/styles/v1/dillar/cj12t54la000b2smrpodn0qhj/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGlsbGFyIiwiYSI6ImNqMTJzbjEweTAwNGEyeG8yaDcycnA5YzQifQ.sTleMehx1aOGHOqS6rAMAg', {
   attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
   maxZoom: 18,
@@ -55,7 +65,7 @@ downloadData((err) => {
     return alert('Error processing data: ' + err);
   }
   createStations();
-  updateTimeseries();
+  updateViz();
 });
 
 // HELPERS
@@ -78,19 +88,23 @@ function createStations() {
       .bindPopup(station.name)
       .addTo(mymap);
   }
-  updateStations();
+}
+
+function updateViz() {
+  setTimeout(updateTimeseries, 1);
+  setTimeout(updateStations, 1);
 }
 
 function updateSizes() {
   windowWidth = $(window).width();
-  windowHeight = $(window).height() - $("#topbar").height();
+  windowHeight = $(window).height() - $("#topbar").height() - $("#midbar").height();
   $("#mapid")
     .width(windowWidth)
     .height(windowHeight * 2/3);
   $("#timeseries")
     .width(windowWidth)
     .height(windowHeight * 1/3);
-  updateTimeseries();
+  updateTimeseries(); // have to specifically re-draw
 }
 
 // http://leafletjs.com/reference-1.0.3.html
@@ -141,7 +155,6 @@ function updateStations() {
       colorB -= diff;
     }
     const color = `rgb(${Math.round(Math.min(255, colorR))},${Math.round(Math.min(255, colorG))},${Math.round(Math.min(255, colorB))})`;
-console.log(diff, color);
     station.circle
       .setStyle({
         fillColor: color,
@@ -158,7 +171,8 @@ function updateTimeseries() {
   // TODO use reducer
   for (let i = 0, l = data.rides.length; i < l; i++) {
     const ride = data.rides[i];
-    if (moment(ride.startDate).isBetween(filters.startTime, filters.endTime)) {
+    if (moment(ride.startDate).isBetween(filters.startTime, filters.endTime) &&
+      ride.hour >= filters.startHour && ride.hour <= filters.endHour) {
       if (ridesPerDay[ride.startDateFormatted] == null) {
         days.push(ride.startDateFormatted);
         ridesPerDay[ride.startDateFormatted] = 0;
@@ -170,16 +184,15 @@ function updateTimeseries() {
   const timeseries = days.map((day) => {
     return {date: new Date(day), value: ridesPerDay[day]}
   });
-  // TODO expand list of markers, only show markers for top (3?) data points in filter range
   const markersFormatted = Object.keys(markers).map((date) => {
     return {date: new Date(date), label: markers[date]};
   });
 
   // https://github.com/mozilla/metrics-graphics/wiki/List-of-Options
   MG.data_graphic({
-    title: 'Rides Per Day',
     data: timeseries,
     buffer: 0,
+    top: 15,
     width: windowWidth,
     height: windowHeight/3,
     target: '#timeseries',
@@ -194,23 +207,39 @@ function updateTimeseries() {
 $(window).resize(updateSizes);
 
 // http://nitinhayaran.github.io/jRange/demo/
-$('.range-slider').jRange({
+$('#dateSlider').jRange({
   from: 0,
   to: 365,
   step: 1,
   showScale: false,
   format: (value) => { return moment(year+'-01-01').add(value, 'days').format('MMM D'); },
-  width: windowWidth - 40,
+  width: windowWidth - 90,
   isRange : true,
+  snap: true,
   ondragend: (value) => {
     value = value.split(',');
     filters.startTime = moment(year+'-01-01').add(value[0], 'days');
     filters.endTime = moment(year+'-01-01').add(value[1], 'days');
-    updateTimeseries();
-    updateStations();
+    updateViz();
   },
 });
 
+$('#todSlider').jRange({
+  from: 0,
+  to: 23,
+  step: 1,
+  showScale: false,
+  format: (value) => { return moment('2000-01-01').add(value, 'hours').format('HH:mm'); },
+  width: windowWidth - 90,
+  isRange : true,
+  snap: true,
+  ondragend: (value) => {
+    value = value.split(',');
+    filters.startHour = Number(value[0]);
+    filters.endHour = Number(value[1]);
+    updateViz();
+  },
+});
 
 
 
