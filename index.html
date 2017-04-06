@@ -5,19 +5,27 @@
     <title>Pittsburgh Bike Share Analysis</title>
     <style>
       a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
-      body, html {
+      html {
         font-family: Arial;
+      }
+      html, body {
+        height: 100%;
+        width: 100%;
+      }
+      .slider-container {
+        padding: 20px;
       }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css" />
     <link rel="stylesheet" href="metricsgraphics.css" />
+    <link rel="stylesheet" href="jquery.range.css">
   </head>
   <body>
-    <h1>Pittsburgh Bike Share Analysis</h1>
-    <input id="slider" type="range" min="1" max="100" value="1" step="1" />
-    <span id="range">1</span>
-    <button name="play" id="play">Play</button>
+    <div id="topbar">
+      <h1>Pittsburgh Bike Share Analyzer</h1>
+      <input type="hidden" class="slider-input range-slider" value="365" />
+    </div>
     <div id="timeseries"></div>
     <div id="mapid"></div>
 
@@ -29,6 +37,7 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     <script src="metricsgraphics.min.js"></script>
+    <script src="jquery.range.min.js"></script>
 
     <script type="text/javascript" src="data.js"></script>
     <script type="text/javascript" src="index.js"></script>
