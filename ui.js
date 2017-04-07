@@ -1,11 +1,7 @@
 // TODOs
-// integrate time of day into map analysis
 // provide help info
   // esp legend for map
 // host on PittsburghBikeWorks.com
-// style / design review
-  // add a nice font
-  // Add loading spinners per-chart while re-calculating charts (on initial loads and filter changes)
 
 // BONUS ideas
 // add checkboxes for day of week
@@ -25,6 +21,11 @@
 // ability to show / highlight weekends in time series
 // combine all years' data, and let users filter / view all of it
 // split out min / max / default values from filter object
+// ability to select / filter on a specific station
+  // In this mode, could then also show flows to / from each other station
+// "Play" / "pause" button to the right of sliders that
+  // Toggles them into single-value sliders
+  // Updates / increments their value + graphs once every three seconds
 
 const year = 2016;
 const filters = {
@@ -37,6 +38,8 @@ const filters = {
 };
 const daysArray = calculateDaysArray(filters.minDay, filters.maxDay);
 const markers = {
+  '2016-04-17 12:00:00': 'First warm weekend',
+  '2016-07-09 12:00:00': 'Bicentennial',
   '2016-09-24 12:00:00': 'Pirates game',
 };
 
@@ -49,11 +52,11 @@ let mymap = null;
 
 updateSizes();
 createMap();
-downloadData((err) => {
+downloadData((err, data) => {
   if (err) {
     return alert('Error processing data: ' + err);
   }
-  populateMap();
+  populateMap(data.stations);
   updateViz();
 });
 
@@ -70,7 +73,7 @@ function calculateDaysArray(startMoment, endMoment) {
 }
 
 function createMap() {
-  mymap = L.map('mapid').setView([40.4398, -79.975], 13);
+  mymap = L.map('map').setView([40.4398, -79.975], 13);
   L.tileLayer('https://api.mapbox.com/styles/v1/dillar/cj12t54la000b2smrpodn0qhj/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGlsbGFyIiwiYSI6ImNqMTJzbjEweTAwNGEyeG8yaDcycnA5YzQifQ.sTleMehx1aOGHOqS6rAMAg', {
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
     maxZoom: 18,
@@ -79,9 +82,9 @@ function createMap() {
   }).addTo(mymap);
 }
 
-function populateMap() {
-  for (let i in data.stations) {
-    const station = data.stations[i];
+function populateMap(stations) {
+  for (let id in stations) {
+    const station = stations[id];
     station.circle = L.circle([station.Latitude, station.Longitude])
       .bindPopup(station.name)
       .addTo(mymap);
@@ -89,6 +92,7 @@ function populateMap() {
 }
 
 function updateViz() {
+  $('.chart').addClass('loading');
   setTimeout(updateTimeseries, 1);
   setTimeout(updateStations, 1);
 }
@@ -96,7 +100,7 @@ function updateViz() {
 function updateSizes() {
   windowWidth = $(window).width();
   windowHeight = $(window).height() - $("#topbar").height() - $("#midbar").height();
-  $("#mapid")
+  $("#map")
     .width(windowWidth)
     .height(windowHeight * 2/3);
   $("#timeseries")
@@ -118,14 +122,17 @@ function updateStations() {
       })
       .setRadius(station.radius);
   }
+  $('#map').removeClass('loading');
 }
 
 function updateTimeseries() {
   const timeseries = calculateTimeseriesData(filters);
+
+  if (timeseries.length === 0) { return; }
+
   const markersFormatted = Object.keys(markers).map((date) => {
     return {date: new Date(date), label: markers[date]};
   });
-
   // https://github.com/mozilla/metrics-graphics/wiki/List-of-Options
   MG.data_graphic({
     data: timeseries,
@@ -138,6 +145,8 @@ function updateTimeseries() {
     y_accessor: 'value',
     markers: markersFormatted,
   });
+  $("#loader").remove();
+  $('#timeseries').removeClass('loading');
 }
 
 // LISTENERS
@@ -154,6 +163,7 @@ $('#dateSlider').jRange({
   width: windowWidth - 90,
   isRange : true,
   snap: true,
+  theme: 'theme-blue',
   ondragend: (value) => {
     value = value.split(',');
     filters.startDay = moment(year+'-01-01').add(value[0], 'days');
@@ -171,6 +181,7 @@ $('#todSlider').jRange({
   width: windowWidth - 90,
   isRange : true,
   snap: true,
+  theme: 'theme-blue',
   ondragend: (value) => {
     value = value.split(',');
     filters.startHour = Number(value[0]);
