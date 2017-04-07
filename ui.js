@@ -64,6 +64,7 @@ downloadData((err, data) => {
     return alert('Error processing data: ' + err);
   }
   populateMap(data.stations);
+  $("#loader").remove();
   updateViz();
 });
 
@@ -169,7 +170,6 @@ function updateTimeseries() {
     missing_is_hidden: true,
     missing_is_hidden_accessor: true,
   });
-  $("#loader").remove();
   $('#timeseries').removeClass('loading');
 }
 

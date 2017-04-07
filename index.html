@@ -82,7 +82,8 @@
       }
 
       .chart {
-        transition: opacity 0.3s ease;
+        transition: opacity 0.5s ease;
+        transition-delay: 0.1s;
         opacity: 1;
       }
       .chart.loading {
@@ -100,7 +101,7 @@
         background: white;
       }
       .sk-circle {
-        margin: 100px auto;
+        margin: 150px auto;
         width: 80px;
         height: 80px;
         position: relative;
@@ -229,7 +230,7 @@
       <input id="dateSlider" type="hidden" class="slider-input range-slider" value="365" />
       <div class="slider-label"><p>Time of Day:</p></div>
       <input id="todSlider" type="hidden" class="slider-input range-slider" value="24" />
-      <h3>Bike Rides by Day</h3>
+      <h3>Bike Rides and Temperature by Day</h3>
     </div>
 
     <div id="loader">
@@ -252,7 +253,7 @@
     <div id="timeseries" class="chart loading">
     </div>
     <div id="midbar">
-      <h3>Bike Rides by Station</h3>
+      <h3>Bike Ride Flow and Volume by Station</h3>
     </div>
     <div id="map" class="chart loading"></div>
 

@@ -3,7 +3,7 @@ const data = {
   rides: [], // [objects] rental data - reported bike rides - time ordered
   stations: {}, // {id: {station}}
   weather: {}, // [{weather}] - time ordered
-    // NOTE: not guaranteed to have data for every hour
+    // NOT guaranteed to have data for every hour
     // temp (F)
     // humidity (0-100%)
     // wind_sped_km
