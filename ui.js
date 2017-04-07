@@ -1,13 +1,17 @@
 // TODOs
 // provide help info
   // esp legend for map
+  // where? help drop-down in top right?
+// add checkboxes for day of week
 // host on PittsburghBikeWorks.com
 
+
 // BONUS ideas
-// add checkboxes for day of week
 // Integrate weather data for exploration
   // second y axis on timeseries?
-// Integrate moves data for exploration
+  // line without fill below... yellow? green? new / unused color
+// Calculate moves data
+  // how to expose it for exploration? as a third line on timeseries? oh dear
 // update circle popup text with new data on refreshes
 // Change axis: per day of year vs per hour of week
 // Allow for animated playthrough
@@ -86,7 +90,7 @@ function populateMap(stations) {
   for (let id in stations) {
     const station = stations[id];
     station.circle = L.circle([station.Latitude, station.Longitude])
-      .bindPopup(station.name)
+      .bindPopup(`<h4>${station.name}</h4>`)
       .addTo(mymap);
   }
 }
@@ -94,7 +98,7 @@ function populateMap(stations) {
 function updateViz() {
   $('.chart').addClass('loading');
   setTimeout(updateTimeseries, 1);
-  setTimeout(updateStations, 1);
+  setTimeout(updateMap, 1);
 }
 
 function updateSizes() {
@@ -110,17 +114,28 @@ function updateSizes() {
 }
 
 // http://leafletjs.com/reference-1.0.3.html
-function updateStations() {
-  const stations = calculateMapData(filters);
+function updateMap() {
+  const {stations, data} = calculateMapData(filters);
   for (let id in stations) {
-    const station = stations[id];
+    const station = data[id];
     station.circle
       .setStyle({
         fillColor: station.color,
         color: station.color,
         fillOpacity: 0.8,
       })
-      .setRadius(station.radius);
+      .setRadius(station.radius)
+      ._popup.setContent(`
+        <h4>${stations[id].name}</h4>
+        <p>
+          Total rides: ${station.abs.toLocaleString()}<br/>
+          Net bikes: ${station.net.toLocaleString()}
+        </p>
+        <p>
+          Total: (to + from) = size</br>
+          Net: (to - from) = color (+ blue, - red)
+        </p>
+      `);
   }
   $('#map').removeClass('loading');
 }
@@ -211,14 +226,14 @@ $('#todSlider').jRange({
 // 				$('#range').html(sliderValue);
 // 			}
 // 			$("#slider").val(sliderValue);
-// 			updateStations();
+// 			updateMap();
 // 		}, duration);
 // 		running = true;
 // 	}
 // });
 
 // $("#slider").on("change", function(){
-// 	updateStations();
+// 	updateMap();
 // 	$("#range").html($("#slider").val());
 // 	clearInterval(timer);
 // 	$("button").html("Play");

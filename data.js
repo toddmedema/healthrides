@@ -103,14 +103,14 @@ function calculateTimeseriesData(filters) {
     }
   });
 
-  const timeseries = Object.keys(ridesPerDay).sort().map((day) => {
+  const timeseriesData = Object.keys(ridesPerDay).sort().map((day) => {
     return {date: new Date(day + ' 12:00:00'), value: ridesPerDay[day]}
   });
 
   console.log('Timeseries: ' + (Date.now() - start));
   cache[filterString] = cache[filterString] || {};
-  cache[filterString].timeseries = timeseries;
-  return timeseries;
+  cache[filterString].timeseries = timeseriesData;
+  return timeseriesData;
 }
 
 
@@ -145,7 +145,7 @@ function calculateMapData(filters) {
   const absMin = Math.min(...absArr);
   const absMax = Math.max(...absArr);
 
-  const map = {};
+  const mapData = {};
   for (let id in data.stations) {
     const station = data.stations[id];
     // calculate net color: positive (blue) vs negative (red) vs grey when near 0
@@ -163,17 +163,19 @@ function calculateMapData(filters) {
       colorG -= diff;
       colorB -= diff;
     }
-    map[id] = {
+    mapData[id] = {
+      abs: stationsAbs[id],
       circle: station.circle,
       color: `rgb(${Math.round(Math.min(255, colorR))},${Math.round(Math.min(255, colorG))},${Math.round(Math.min(255, colorB))})`,
+      net: net,
       radius: CIRCLE_RADIUS_MIN + (CIRCLE_RADIUS_MAX - CIRCLE_RADIUS_MIN) * (stationsAbs[id] - absMin) / (absMax - absMin),
     };
   }
 
   console.log('Map: ' + (Date.now() - start));
   cache[filterString] = cache[filterString] || {};
-  cache[filterString].map = map;
-  return map;
+  cache[filterString].map = mapData;
+  return {stations: data.stations, data: mapData};
 }
 
 function filtersToString(filters) {
