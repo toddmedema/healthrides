@@ -1,8 +1,15 @@
 const data = {
-  moves: [], // [objects] rental data - interpolated moves
-  rides: [], // [objects] rental data - reported bike rides
+  // moves: [], // [objects] rental data - interpolated moves
+  rides: [], // [objects] rental data - reported bike rides - time ordered
   stations: {}, // {id: {station}}
-  weather: {},// {ts (hourly): {weather}}
+  weather: {}, // [{weather}] - time ordered
+    // NOTE: not guaranteed to have data for every hour
+    // temp (F)
+    // humidity (0-100%)
+    // wind_sped_km
+    // rain (boolean)
+    // clouds (0-100%)
+    // condition (string)
 };
 
 /*
@@ -20,17 +27,24 @@ cache = {
 const cache = {};
 
 function downloadData(callback) {
-  download('data/HealthyRideRentals' + year + '.csv', (err, rentals) => {
+  download('data/HealthyRideRentals' + year + '.csv', (err, rides) => {
     if (!err) {
-      data.rides = processRentals(rentals);
+      data.rides = processRides(rides);
     } else {
       return callback(err);
     }
     download('data/HealthyRideStations' + year + '.csv', (err, stations) => {
       if (!err) {
         data.stations = processStations(data.rides, stations);
+      } else {
+        return callback(err);
       }
-      callback(err, data);
+      download('data/PittsburghWeather' + year + '.csv', (err, weather) => {
+        if (!err) {
+          data.weather = processWeather(weather);
+        }
+        callback(err, data);
+      });
     });
   });
 }
@@ -49,12 +63,9 @@ function download(url, callback) {
   });
 }
 
-// PERF: use map, create new ride object with fully defined schema
-function processRentals(csv) {
+function processRides(csv) {
   csv = d3.csvParse(csv);
-  let data = [];
-  for (let i = 0, l = csv.length; i < l; i++) {
-    const ride = csv[i];
+  csv.forEach((ride) => {
     ride.from = ride['From station id'];
     ride.to = ride['To station id'];
     ride.startDate = moment(ride.Starttime).startOf('day');
@@ -62,28 +73,35 @@ function processRentals(csv) {
     ride.hour = Number(moment(ride.Starttime).format('H'));
     // ride.dayOfWeek = ...
     // ride.stopRounded = moment(ride.Stoptime).startOf('hour').toString();
-    data.push(ride);
-  }
-  return data;
+  });
+  return csv;
 }
 
-// PERF: use map
 function processStations(rides, csv) {
   csv = d3.csvParse(csv);
   let data = {};
-  for (let i = 0, l = csv.length; i < l; i++) {
-    const station = csv[i];
+  csv.forEach((station) => {
     station.id = station['Station #'];
     station.name = station['Station Name'];
     data[station.id] = station;
-  }
+  });
   return data;
+}
+
+function processWeather(csv) {
+  csv = d3.csvParse(csv);
+  csv.forEach((weather) => {
+    weather.hour = Number(moment(weather.local_time).format('H'));
+    weather.day = moment(weather.local_time).startOf('day');
+    weather.dayFormatted = weather.day.format('YYYY-MM-DD');
+  });
+  return csv;
 }
 
 
 function calculateTimeseriesData(filters) {
   const start = Date.now();
-  if (data.rides.length === 0) { return []; }
+  if (data.rides.length === 0 || data.weather.length === 0) { return []; }
 
   // return from cache if pre-calculated
   const filterString = filtersToString(filters);
@@ -91,6 +109,7 @@ function calculateTimeseriesData(filters) {
     return cache[filterString].timeseries;
   }
 
+  // cleanup: use map / accumulator
   const ridesPerDay = {};
   data.rides.forEach((ride) => {
     if (ride.startDate.isBetween(filters.startDay, filters.endDay, 'day', '[]')
@@ -103,8 +122,26 @@ function calculateTimeseriesData(filters) {
     }
   });
 
+  // cleanup: use map / accumulator
+  const dailyTemp = {};
+  data.weather.forEach((weather) => {
+    if (weather.day.isBetween(filters.startDay, filters.endDay, 'day', '[]')
+      && weather.hour >= filters.startHour && weather.hour <= filters.endHour) {
+      if (dailyTemp[weather.dayFormatted] == null) {
+        dailyTemp[weather.dayFormatted] = [weather.temp];
+      } else {
+        dailyTemp[weather.dayFormatted].push(weather.temp);
+      }
+    }
+  });
+
   const timeseriesData = Object.keys(ridesPerDay).sort().map((day) => {
-    return {date: new Date(day + ' 12:00:00'), value: ridesPerDay[day]}
+    return {
+      date: new Date(day + ' 12:00:00'),
+      rides: ridesPerDay[day],
+      tempMax: dailyTemp[day] ? Math.max(...dailyTemp[day]) : null,
+      tempMin: dailyTemp[day] ? Math.min(...dailyTemp[day]) : null,
+    };
   });
 
   console.log('Timeseries: ' + (Date.now() - start));

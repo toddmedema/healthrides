@@ -3,13 +3,16 @@
   // esp legend for map
   // where? help drop-down in top right?
 // add checkboxes for day of week
+// Integrate weather data for exploration
+  // second y axis on timeseries?
+  // line without fill below... yellow? green? new / unused color
 // host on PittsburghBikeWorks.com
 
 
 // BONUS ideas
-// Integrate weather data for exploration
-  // second y axis on timeseries?
-  // line without fill below... yellow? green? new / unused color
+// UI upgrades
+  // Better way of resizing charts? Define chart div sizing / %'s in CSS,
+  // and fetch their dimensions instead of page size?
 // Calculate moves data
   // how to expose it for exploration? as a third line on timeseries? oh dear
 // update circle popup text with new data on refreshes
@@ -140,6 +143,7 @@ function updateMap() {
   $('#map').removeClass('loading');
 }
 
+// https://github.com/mozilla/metrics-graphics/wiki/List-of-Options
 function updateTimeseries() {
   const timeseries = calculateTimeseriesData(filters);
 
@@ -148,7 +152,6 @@ function updateTimeseries() {
   const markersFormatted = Object.keys(markers).map((date) => {
     return {date: new Date(date), label: markers[date]};
   });
-  // https://github.com/mozilla/metrics-graphics/wiki/List-of-Options
   MG.data_graphic({
     data: timeseries,
     buffer: 0,
@@ -157,8 +160,14 @@ function updateTimeseries() {
     height: windowHeight/3,
     target: '#timeseries',
     x_accessor: 'date',
-    y_accessor: 'value',
+    y_accessor: ['rides', 'tempMax', 'tempMin'],
+    min_y: 0,
     markers: markersFormatted,
+    legend: ['Total Rides', 'Max Temperature', 'Min Temperature'],
+    aggregate_rollover: true,
+    point_size: 4,
+    missing_is_hidden: true,
+    missing_is_hidden_accessor: true,
   });
   $("#loader").remove();
   $('#timeseries').removeClass('loading');
